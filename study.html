@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>日本語読解力・漢字クイズ</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif;background:linear-gradient(135deg,#eaf5ff,#fff1e8);color:#263449}.wrap{max-width:760px;margin:auto;padding:14px}.card{background:#fff;border-radius:22px;padding:20px;margin:12px 0;box-shadow:0 8px 28px #2d5b8b18}h1{font-size:23px;margin:0 0 5px}h2{margin-top:4px}.sub,.small{color:#718096;font-size:13px}.top{display:flex;justify-content:space-between;align-items:center;gap:10px}.badge{background:#e8f2ff;color:#2673d6;padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px;white-space:nowrap}.badge.level{background:#fff0e0;color:#d0742a}.mode{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mode.three{grid-template-columns:1fr}button{width:100%;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:700;background:#2878e8;color:#fff;margin-top:9px;cursor:pointer}button.secondary{background:#edf1f6;color:#35445b}button.choice{text-align:left;background:#f5f8fc;color:#263449;border:2px solid transparent;box-shadow:none}button.choice.correct{background:#e9f9f0;border-color:#42b883;color:#176c48}button.choice.wrong{background:#fff0f0;border-color:#e96b6b;color:#a42d2d}button.level-btn{display:flex;justify-content:space-between;align-items:center;background:#f5f8fc;color:#263449;text-align:left;padding:16px}button.level-btn b{font-size:16px}button.level-btn span{color:#718096;font-size:12px;font-weight:400}button.level-btn.b1{border-left:6px solid #48b889}button.level-btn.b2{border-left:6px solid #e8a03a}button.level-btn.b3{border-left:6px solid #e05a5a}button.level-btn.b4{border-left:6px solid #7a3fd6;background:#f5eeff}.progress{height:9px;background:#e8edf3;border-radius:99px;overflow:hidden;margin-top:12px}.bar{height:100%;width:0;background:#48b889;transition:.25s}.q{font-size:18px;line-height:1.75;font-weight:700;margin:18px 0}.feedback{padding:13px;border-radius:13px;margin-top:12px;line-height:1.6}.ok{background:#eaf9f1;color:#176c48}.ng{background:#fff0f0;color:#a42d2d}.hidden{display:none}.stats{display:flex;gap:9px}.stat{flex:1;background:#f5f7fa;border-radius:14px;text-align:center;padding:12px}.stat b{display:block;font-size:22px}.crumb{color:#2673d6;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:6px;display:inline-block}@media(max-width:480px){.mode{grid-template-columns:1fr}.card{padding:17px}.q{font-size:17px}}
+</style>
+</head>
+<body><div class="wrap">
+<section class="card"><div class="top"><div><h1>📚 日本語読解力・漢字トレーニング</h1><div class="sub">コース×レベルを選んで練習しよう</div></div><span class="badge" id="score">0問正解</span></div></section>
+
+<section id="home" class="card"><h2>🎯 コースを選ぼう！</h2><p>毎回ランダム出題！選択肢も毎回シャッフルされるけぇ、正解位置もバラけるで。</p><div class="mode three">
+<button onclick="chooseCourse('kanji')">🈶 漢字コース（読み・意味）</button>
+<button onclick="chooseCourse('reading')">📖 文章題コース（読解）</button>
+<button onclick="chooseCourse('general')">🌟 日本語力コース（総合）</button>
+</div><button class="secondary" onclick="showStats()">📊 累計成績</button>
+<p class="small">1セット最大20問。何周でも練習OK！</p></section>
+
+<section id="levels" class="card hidden">
+<span class="crumb" onclick="backHome()">← コース選択に戻る</span>
+<h2 id="levelTitle">📶 レベルを選ぼう</h2>
+<div class="mode three">
+<button class="level-btn b1" onclick="start('beginner')"><span><b>🌱 初級</b><br><span>基本的な言葉・やさしい文章</span></span><span>▶</span></button>
+<button class="level-btn b2" onclick="start('intermediate')"><span><b>🌿 中級</b><br><span>大学入試・N2レベルの語彙</span></span><span>▶</span></button>
+<button class="level-btn b3" onclick="start('advanced')"><span><b>🌳 上級</b><br><span>難関・N1レベルの語彙</span></span><span>▶</span></button>
+<button class="level-btn b4" onclick="start('extreme')"><span><b>🔥 超難問</b><br><span>漢検準1級級・超難関論説文</span></span><span>▶</span></button>
+</div>
+</section>
+
+<section id="quiz" class="card hidden"><div class="top"><span class="badge" id="type">問題</span><span class="badge level" id="levelBadge">レベル</span><b id="count">1 / 20</b></div><div class="progress"><div id="bar" class="bar"></div></div><div id="question" class="q"></div><div id="answers"></div><div id="feedback" class="feedback hidden"></div><button id="next" class="hidden" onclick="nextQuestion()">次の問題 ➜</button></section>
+
+<section id="result" class="card hidden"><h2>🎉 おつかれさん！</h2><div class="stats"><div class="stat"><b id="finalScore">0</b>正解</div><div class="stat"><b id="finalTotal">20</b>問題</div><div class="stat"><b id="percent">0%</b>正答率</div></div><p id="comment"></p><button onclick="backHome()">🏠 メニューへ</button><button class="secondary" onclick="restart()">🔁 もう一回</button></section>
+
+<section id="stats" class="card hidden"><h2>📊 累計成績</h2><div class="stats"><div class="stat"><b id="allCorrect">0</b>正解</div><div class="stat"><b id="allAnswered">0</b>回答</div><div class="stat"><b id="allPercent">0%</b>正答率</div></div><p class="small">※成績はこのページを開いている間だけ記録されます（再読み込みでリセットされます）。</p><button onclick="backHome()">🏠 戻る</button><button class="secondary" onclick="resetStats()">成績をリセット</button></section>
+</div>
+<script>
+/* ============ 語彙データ（コース：漢字コース / 日本語力コースで使用） ============ */
+const WORDS = {
+  beginner: [
+    {w:"天気",r:"てんき",m:"空の状態、晴れや雨など"},
+    {w:"生活",r:"せいかつ",m:"日々の暮らし"},
+    {w:"交通",r:"こうつう",m:"人や物が行き来すること"},
+    {w:"経験",r:"けいけん",m:"実際に見たり行ったりしたこと"},
+    {w:"説明",r:"せつめい",m:"分かるように述べること"},
+    {w:"質問",r:"しつもん",m:"分からないことを尋ねること"},
+    {w:"準備",r:"じゅんび",m:"前もって用意すること"},
+    {w:"参加",r:"さんか",m:"仲間に加わること"},
+    {w:"利用",r:"りよう",m:"役立てて使うこと"},
+    {w:"発表",r:"はっぴょう",m:"人前で示すこと"},
+    {w:"相談",r:"そうだん",m:"話し合って考えること"},
+    {w:"協力",r:"きょうりょく",m:"力を合わせること"},
+    {w:"予定",r:"よてい",m:"前もって決めておくこと"},
+    {w:"到着",r:"とうちゃく",m:"目的地に着くこと"},
+    {w:"出発",r:"しゅっぱつ",m:"出かけること"},
+    {w:"案内",r:"あんない",m:"道や事情を教えること"},
+    {w:"注意",r:"ちゅうい",m:"気をつけること"},
+    {w:"確認",r:"かくにん",m:"確かめること"},
+    {w:"連絡",r:"れんらく",m:"知らせること"},
+    {w:"変化",r:"へんか",m:"状態が変わること"},
+    {w:"習慣",r:"しゅうかん",m:"いつもしている行い"},
+    {w:"理由",r:"りゆう",m:"そうなったわけ"},
+    {w:"目的",r:"もくてき",m:"しようとすること"},
+    {w:"方法",r:"ほうほう",m:"やり方"},
+    {w:"内容",r:"ないよう",m:"中身"}
+  ],
+  intermediate: [
+    {w:"遵守",r:"じゅんしゅ",m:"決まりや法律を守ること"},
+    {w:"顕著",r:"けんちょ",m:"はっきりと目立つこと"},
+    {w:"懸念",r:"けねん",m:"心配して気にかかること"},
+    {w:"妥当",r:"だとう",m:"状況にふさわしく適切であること"},
+    {w:"踏襲",r:"とうしゅう",m:"以前のやり方をそのまま受け継ぐこと"},
+    {w:"脆弱",r:"ぜいじゃく",m:"弱くもろいこと"},
+    {w:"概念",r:"がいねん",m:"物事についての大まかな考え"},
+    {w:"簡潔",r:"かんけつ",m:"簡単で要点がまとまっていること"},
+    {w:"遂行",r:"すいこう",m:"物事をやり遂げること"},
+    {w:"著しい",r:"いちじるしい",m:"はっきりと目立つ様子"},
+    {w:"促す",r:"うながす",m:"物事が早く進むように働きかけること"},
+    {w:"培う",r:"つちかう",m:"長い時間をかけて育てること"},
+    {w:"隔てる",r:"へだてる",m:"間に距離や仕切りを置くこと"},
+    {w:"覆す",r:"くつがえす",m:"それまでの状態や結果を反対にすること"},
+    {w:"損なう",r:"そこなう",m:"物事の状態や価値を悪くすること"},
+    {w:"伴う",r:"ともなう",m:"ある物事と一緒に起こること"},
+    {w:"乏しい",r:"とぼしい",m:"少なくて足りないこと"},
+    {w:"顧慮",r:"こりょ",m:"相手や事情を考えに入れること"},
+    {w:"模索",r:"もさく",m:"手探りで方法を探すこと"},
+    {w:"逸脱",r:"いつだつ",m:"決まった範囲や方針から外れること"},
+    {w:"相応",r:"そうおう",m:"つり合っていてふさわしいこと"},
+    {w:"包括",r:"ほうかつ",m:"全体をまとめて含むこと"},
+    {w:"暫定",r:"ざんてい",m:"正式に決まるまで仮に定めること"},
+    {w:"恒常",r:"こうじょう",m:"変わらず一定であること"},
+    {w:"漸進",r:"ぜんしん",m:"少しずつ進んでいくこと"},
+    {w:"抜本",r:"ばっぽん",m:"根本から改めること"},
+    {w:"端的",r:"たんてき",m:"要点を簡潔に表す様子"},
+    {w:"精緻",r:"せいち",m:"細部まで注意が行き届いていること"},
+    {w:"曖昧",r:"あいまい",m:"はっきりしないこと"},
+    {w:"緻密",r:"ちみつ",m:"細かい点まで注意が行き届いていること"},
+    {w:"多様",r:"たよう",m:"種類がいろいろあること"},
+    {w:"画一的",r:"かくいつてき",m:"違いを考えず全て同じにすること"},
+    {w:"限定的",r:"げんていてき",m:"範囲を限っている様子"},
+    {w:"体系的",r:"たいけいてき",m:"全体を秩序立ててまとめた様子"},
+    {w:"断片的",r:"だんぺんてき",m:"全体の一部分だけである様子"},
+    {w:"有意義",r:"ゆういぎ",m:"価値や意味があること"},
+    {w:"周到",r:"しゅうとう",m:"準備などが細かく行き届いていること"},
+    {w:"堅実",r:"けんじつ",m:"危なげがなく確実なこと"},
+    {w:"迅速",r:"じんそく",m:"非常に速いこと"},
+    {w:"明瞭",r:"めいりょう",m:"はっきりして分かりやすいこと"},
+    {w:"適宜",r:"てきぎ",m:"状況に応じて適切に行うこと"},
+    {w:"把握",r:"はあく",m:"物事の状況を正しくつかむこと"},
+    {w:"配慮",r:"はいりょ",m:"相手や周りの事情を考えること"},
+    {w:"考慮",r:"こうりょ",m:"よく考えて判断の材料にすること"},
+    {w:"認識",r:"にんしき",m:"物事をはっきりと知り理解すること"},
+    {w:"推測",r:"すいそく",m:"手がかりをもとに推し量ること"},
+    {w:"検証",r:"けんしょう",m:"実際に調べて正しいか確かめること"},
+    {w:"論拠",r:"ろんきょ",m:"議論や主張を支える根拠"},
+    {w:"趣旨",r:"しゅし",m:"話や文章の中心となる考えや目的"},
+    {w:"意図",r:"いと",m:"何かをしようと考えていること"}
+  ],
+  advanced: [
+    {w:"秀逸",r:"しゅういつ",m:"他よりずば抜けて優れていること"},
+    {w:"弊害",r:"へいがい",m:"害となる悪い影響"},
+    {w:"醸成",r:"じょうせい",m:"ある雰囲気や状態を少しずつ作り出すこと"},
+    {w:"払拭",r:"ふっしょく",m:"よくないものをすっかり取り除くこと"},
+    {w:"詭弁",r:"きべん",m:"道理に合わないのに巧みに言いくるめる議論"},
+    {w:"逼迫",r:"ひっぱく",m:"余裕がなく差し迫った状態になること"},
+    {w:"顕在化",r:"けんざいか",m:"隠れていたものが表面に現れること"},
+    {w:"忖度",r:"そんたく",m:"相手の心情を推し量ること"},
+    {w:"齟齬",r:"そご",m:"物事がうまくかみ合わないこと"},
+    {w:"汎用",r:"はんよう",m:"広くさまざまな用途に使えること"},
+    {w:"稀有",r:"けう",m:"めったにないほど珍しいこと"},
+    {w:"瑣末",r:"さまつ",m:"取るに足りない小さなこと"},
+    {w:"相克",r:"そうこく",m:"対立するものが互いに勝とうと争うこと"},
+    {w:"忌避",r:"きひ",m:"嫌って避けること"},
+    {w:"逓減",r:"ていげん",m:"次第に少しずつ減っていくこと"},
+    {w:"敷衍",r:"ふえん",m:"意味を押し広げて詳しく説明すること"},
+    {w:"迂遠",r:"うえん",m:"回りくどくて実際の役に立たないこと"},
+    {w:"蓋然性",r:"がいぜんせい",m:"物事が実際に起こる確からしさ"},
+    {w:"呈する",r:"ていする",m:"ある状態や様子を示すこと"},
+    {w:"畢竟",r:"ひっきょう",m:"つまるところ、結局"}
+  ],
+  extreme: [
+    {w:"慚愧",r:"ざんき",m:"自分の言動を深く恥じること"},
+    {w:"忸怩",r:"じくじ",m:"深く恥じ入る様子"},
+    {w:"韜晦",r:"とうかい",m:"自分の才能や本心を包み隠すこと"},
+    {w:"掣肘",r:"せいちゅう",m:"わきから干渉して自由な行動を妨げること"},
+    {w:"邁進",r:"まいしん",m:"目標に向かってひたすら突き進むこと"},
+    {w:"隘路",r:"あいろ",m:"物事の進行を妨げる狭く困難な道"},
+    {w:"恣意的",r:"しいてき",m:"その場の思いつきや自分勝手な考えによる様子"},
+    {w:"慟哭",r:"どうこく",m:"悲しみのあまり声をあげて泣くこと"},
+    {w:"睥睨",r:"へいげい",m:"威圧するように辺りをにらみ見ること"},
+    {w:"剽窃",r:"ひょうせつ",m:"他人の文章や考えを盗んで自分のものとすること"},
+    {w:"蒙昧",r:"もうまい",m:"知識が乏しく物事の道理に暗いこと"},
+    {w:"瞠目",r:"どうもく",m:"驚いて目を見張ること"},
+    {w:"邂逅",r:"かいこう",m:"思いがけずめぐり会うこと"},
+    {w:"桎梏",r:"しっこく",m:"人の自由を厳しく縛りつけるもの"},
+    {w:"屹立",r:"きつりつ",m:"高くそびえ立つこと"},
+    {w:"濫觴",r:"らんしょう",m:"物事の起こり、始まり"},
+    {w:"杜撰",r:"ずさん",m:"いいかげんで誤りが多いこと"},
+    {w:"頽廃",r:"たいはい",m:"気風や道徳などが乱れ崩れること"},
+    {w:"訥弁",r:"とつべん",m:"話し方がつたなく下手なこと"},
+    {w:"曲学阿世",r:"きょくがくあせい",m:"学問の真理を曲げて世間や権力にへつらうこと"}
+  ]
+};
+
+/* ============ 読解パッセージ（コース：文章題コース / 日本語力コースで使用） ============ */
+const PASSAGES = {
+  beginner: [
+    {t:"「毎朝散歩をすると、体の調子がよくなる。」この文から分かることは？",o:["散歩は健康によい","散歩は体に悪い","朝は散歩できない","散歩は毎日する必要はない"],a:0},
+    {t:"「雨の日は洗濯物が乾きにくい。」理由として正しいのは？",o:["空気の湿度が高いから","気温が高いから","風が強いから","日光が強いから"],a:0},
+    {t:"「駅から家まで歩いて十分かかる。」この文から分かることは？",o:["駅と家はそれほど遠くない","駅と家はとても遠い","歩くことはできない","バスを使う必要がある"],a:0},
+    {t:"「今日は忙しくて昼ご飯を食べる時間がなかった。」筆者の状況は？",o:["とても忙しかった","暇だった","昼ご飯を食べたくなかった","朝ご飯を食べなかった"],a:0},
+    {t:"「新しい店ができて、近所がにぎやかになった。」この文の意味は？",o:["人が増えて活気が出た","店がすぐ閉店した","静かになった","誰も来なかった"],a:0},
+    {t:"「友達に手伝ってもらって、仕事が早く終わった。」なぜ早く終わった？",o:["友達が手伝ってくれたから","仕事が少なかったから","早く始めたから","簡単な仕事だったから"],a:0},
+    {t:"「電車が遅れたので、会議に遅刻した。」原因は？",o:["電車の遅れ","寝坊","道に迷った","忘れ物"],a:0},
+    {t:"「野菜をたくさん食べると、体によいと言われている。」この文が伝えることは？",o:["野菜は健康に役立つ","野菜は体に悪い","野菜は高い","野菜は食べにくい"],a:0},
+    {t:"「彼は毎日日記を書いている。」この文から分かることは？",o:["日記を書く習慣がある","日記を書いたことがない","日記が嫌いだ","日記を捨てた"],a:0},
+    {t:"「テストの前に十分寝たので、頭がすっきりしていた。」なぜ頭がすっきりしていた？",o:["よく眠ったから","勉強したから","早起きしたから","運動したから"],a:0},
+    {t:"「道が混んでいたので、いつもより時間がかかった。」理由は？",o:["道が混雑していたから","近道をしたから","早く出発したから","天気がよかったから"],a:0},
+    {t:"「休みの日は家でゆっくり過ごすことが多い。」筆者の休日の過ごし方は？",o:["家で静かに過ごす","毎回旅行する","仕事をする","外で騒ぐ"],a:0}
+  ],
+  intermediate: [
+    {t:"便利な道具は時間を節約する。しかし、節約した時間を何に使うかは人によって異なる。筆者が最も伝えたいことは？",o:["便利さを生かすには時間の使い方も重要だ","便利な道具は使わない方がよい","時間は誰でも同じように使う","道具では時間を節約できない"],a:0},
+    {t:"読書は知識を増やすだけでなく、他者の立場を想像する機会にもなる。この文章から分かることは？",o:["読書には他者理解を促す面もある","読書の目的は知識だけだ","他者理解に読書は関係ない","知識と想像力は無関係だ"],a:0},
+    {t:"失敗を避け続ければ、失敗から学ぶ機会も失われる。適切な解釈は？",o:["失敗には学習の材料となる面がある","失敗は必ず成功になる","失敗は多いほどよい","失敗は避けられない"],a:0},
+    {t:"情報が多いほど判断しやすいとは限らない。重要なのは必要な情報を選ぶことである。要旨は？",o:["情報の量より取捨選択が重要だ","情報は多いほどよい","情報は少ないほどよい","判断には情報が不要だ"],a:0},
+    {t:"同じ意見を持つ人だけで話すと、考えが深まるとは限らない。その理由は？",o:["異なる視点に触れる機会が減るから","一致した意見は必ず間違うから","話すことに意味がないから","同じ意見は必ず浅いから"],a:0},
+    {t:"伝えることと伝わることは同じではない。説明しただけで相手が理解したとは限らない。適切なのは？",o:["相手の理解まで確認する必要がある","説明すれば必ず理解される","話し手だけが責任を持つ","理解には説明が不要だ"],a:0},
+    {t:"数字は客観的に見えるが、どの数字を集めどう比較するかには判断が入る。主張は？",o:["数字を扱う過程にも判断が関わる","数字は役に立たない","数字があれば判断不要だ","比較は数字ではできない"],a:0},
+    {t:"一つの出来事だけを見て全体の傾向を判断するのは危険である。なぜ？",o:["一例だけでは全体を代表するとは限らないから","一例は必ず間違いだから","全体は存在しないから","出来事は比較できないから"],a:0},
+    {t:"意見が違う相手との対話では、説得する前に相手の理由を理解することが重要だ。要旨は？",o:["まず相手の考えを理解することが重要だ","相手をすぐ説得すべきだ","意見の違いはなくすべきだ","理由を聞く必要はない"],a:0},
+    {t:"文章の冒頭で問題を提示し、後半で理由を説明する構成がある。冒頭の役割は？",o:["読者に問題を示すこと","結論を完全に証明すること","具体例をすべて示すこと","反対意見を否定すること"],a:0},
+    {t:"「しかし」という語を使って前の内容と反対方向の内容を示した。この語の働きは？",o:["逆接を示す","理由を示す","例を示す","結論を示す"],a:0},
+    {t:"「例えば」と書いた後に実例を挙げている。この語の働きは？",o:["具体例を導く","結論を否定する","反対意見を示す","話を終える"],a:0},
+    {t:"結論だけでなく理由を見ることで主張の妥当性を判断できる。何を見るべき？",o:["主張を支える理由","文章の長さ","筆者の年齢","文字の種類"],a:0},
+    {t:"知識を得ることと、それを使えることは同じではない。重要なのは？",o:["知識を活用する力も重要だ","知識は不要だ","活用すれば知識はいらない","知識と活用は完全に同じだ"],a:0},
+    {t:"比較には同じ基準が必要である。この文から分かることは？",o:["比較条件をそろえる必要がある","数字は使えない","一つだけを見ればよい","感覚だけで比較すべきだ"],a:0},
+    {t:"最後に「以上のことから」と述べた。続く内容として自然なのは？",o:["それまでの内容を踏まえた結論","新しい話題","最初の問題の再提示だけ","具体例だけ"],a:0},
+    {t:"便利さは目的ではなく手段である。便利になった結果、何を実現したいかを考える必要がある。要旨は？",o:["便利さを何のために使うかが重要だ","便利なものは使うべきでない","手段が目的より重要だ","便利さは必ず問題を起こす"],a:0},
+    {t:"急いで結論を出すと、見落としていた条件に気づけないことがある。勧めていることは？",o:["結論の前に条件を確認すること","何でも時間をかけること","結論を出さないこと","条件を無視すること"],a:0},
+    {t:"具体例は抽象的な主張を理解しやすくする。この文から考えられることは？",o:["具体例には理解を助ける働きがある","具体例は必ず結論になる","抽象的な説明は不要だ","具体例は主張と無関係だ"],a:0},
+    {t:"地域の祭りは娯楽であると同時に、人々が地域とのつながりを確認する場でもある。述べられていないものは？",o:["必ず観光客だけを対象にすること","娯楽を提供すること","地域の人が集まること","つながりを確認すること"],a:0}
+  ],
+  advanced: [
+    {t:"技術の進歩は必ずしも人間を幸福にするとは限らない。利便性の向上が新たな問題を生む場合もある。筆者の主張として最も適切なのは？",o:["技術の進歩には功罪の両面がある","技術は常に人間を幸福にする","技術の進歩は不要だ","利便性と幸福は無関係だ"],a:0},
+    {t:"歴史を学ぶ意義は、過去の出来事を暗記することではなく、現在を捉える視点を養うことにある。筆者が重視しているのは？",o:["歴史から現在を見る視点を養うこと","年号を正確に覚えること","過去を忘れること","暗記量を増やすこと"],a:0},
+    {t:"専門家の意見が分かれる問題については、単純な結論を急ぐより、複数の立場を比較する姿勢が求められる。筆者の考えに近いのは？",o:["対立する見解を丁寧に比較すべきだ","専門家の意見は無視してよい","結論は早く出すべきだ","一つの立場だけを信じるべきだ"],a:0},
+    {t:"効率を追求するあまり、長期的に見て失われるものがあることを見落としてはならない。筆者が警告していることは？",o:["効率重視が別の損失を招く可能性","効率は常に善である","長期的視点は不要だ","効率と損失は無関係だ"],a:0},
+    {t:"言葉は単なる伝達の道具ではなく、思考そのものを形作る枠組みでもある。この文の趣旨は？",o:["言語は思考のあり方に影響を与える","言葉は思考と無関係だ","言語は道具に過ぎない","思考は言葉より先に存在する"],a:0},
+    {t:"制度を設計する際には、想定外の事態への備えも組み込む必要がある。筆者が求めていることは？",o:["不測の事態を見越した設計","想定外は考慮しなくてよい","制度は変更すべきでない","備えは無駄である"],a:0},
+    {t:"批判的に読むとは、書かれた内容を鵜呑みにせず、根拠や論理の妥当性を吟味することである。批判的な読み方とは？",o:["根拠や論理を検討しながら読むこと","内容をすべて否定すること","何も考えずに読むこと","著者を信用しないこと"],a:0},
+    {t:"変化の激しい時代においては、知識そのものよりも、知識を更新し続ける力の方が重要になりつつある。筆者の主張は？",o:["学び続ける姿勢が重要だ","知識は不要になった","一度得た知識で十分だ","変化は望ましくない"],a:0},
+    {t:"合意形成の過程では、少数意見を切り捨てず、丁寧にすくい上げることが結果の質を左右する。筆者が重視するのは？",o:["少数意見を尊重する姿勢","多数決だけで決めること","少数意見の排除","議論を省略すること"],a:0},
+    {t:"因果関係と相関関係を混同すると、誤った対策を導きかねない。筆者が指摘する危険性は？",o:["二つを取り違えることによる判断の誤り","相関関係は常に因果関係である","因果関係は存在しない","対策は不要である"],a:0},
+    {t:"持続可能性を考えるとは、現在の利益だけでなく将来世代への影響まで視野に入れることだ。持続可能性の考え方とは？",o:["将来への影響も踏まえて判断すること","現在の利益だけを優先すること","将来のことは考慮しないこと","利益を無視すること"],a:0},
+    {t:"専門用語を多用した説明は、正確さを高める一方で、伝わりにくさを生むこともある。筆者が指摘する問題点は？",o:["正確さと分かりやすさの両立の難しさ","専門用語は不要だ","説明は不要だ","正確さは重要でない"],a:0}
+  ],
+  extreme: [
+    {t:"「真理の探求とは、既知の枠組みを疑いうる限り疑い尽くした後になお残るものを見定める営みに他ならず、安易な結論への逃避を最も厳しく戒める行為である。」筆者が最も強調していることは？",o:["徹底した懐疑を経てなお残るものを見極める姿勢","既知の枠組みを疑う必要はない","安易な結論こそ真理に近い","探求は結論を急ぐべき営みだ"],a:0},
+    {t:"「歴史とは単なる過去の集積ではなく、現在という視座から絶えず問い直され、書き換えられ続ける動的な解釈の体系である。」この文の趣旨として最も適切なのは？",o:["歴史は現在の視点によって絶えず再解釈される","歴史は一度確定すれば変わらない","歴史は過去の事実の羅列にすぎない","歴史の解釈に現在は関与しない"],a:0},
+    {t:"「ある命題が真であることと、その命題が実際に有用であることとは、論理的には全く別の次元に属する問題である。」筆者が区別しているのは？",o:["真理性と有用性という異なる評価軸","真理と虚偽の違い","命題と事実の同一性","論理と感情の対立"],a:0},
+    {t:"「制度の正当性は、それが多数の支持を得ていることのみによって担保されるのではなく、少数者の権利をいかに担保しうるかという観点からも吟味されねばならない。」筆者の主張は？",o:["正当性の判断には少数者への配慮も不可欠だ","多数の支持さえあれば正当性は十分だ","少数者の権利は考慮しなくてよい","制度に正当性の吟味は不要だ"],a:0},
+    {t:"「言語による分節化を経ずして経験それ自体を語ることは原理的に不可能であり、我々が『純粋な経験』と呼ぶものすら、既に言語的枠組みに媒介されている。」この文が述べているのは？",o:["経験の記述は言語的枠組みから逃れられない","経験は言語と無関係に存在しうる","純粋な経験は言語に先立って語られる","言語は経験を歪めるだけの障害である"],a:0},
+    {t:"「進歩史観は、あたかも歴史が単一の目的地に向かって直線的に発展するかのごとき錯覚を与えるが、実際の歴史はしばしば逆行や停滞、複数の潮流の錯綜を伴う。」筆者が批判しているのは？",o:["歴史を単純な直線的発展として捉える見方","歴史に停滞や逆行が存在すること","複数の潮流が絡み合うこと","歴史学という学問そのもの"],a:0},
+    {t:"「自由とは単に外的な拘束からの解放を意味するのみならず、いかなる選択をも自らの意志として引き受けうる内的な条件を伴って初めて実質化される。」筆者の考える自由とは？",o:["外的解放と内的条件の両方を要する概念","外的拘束がなければそれで足りる概念","選択の責任を負わなくてよい状態","内的条件のみで完結する概念"],a:0},
+    {t:"「学問の細分化は個々の領域における精緻な知見をもたらす一方、諸領域を架橋する視座を失わせ、全体像の把握をかえって困難にするという逆説を孕んでいる。」筆者が指摘する逆説とは？",o:["精緻化が全体把握を妨げうるという逆説","細分化には利点しかないこと","全体像の把握は不要であること","学問はすべて統合されるべきこと"],a:0},
+    {t:"「規範を語ることと、規範に従って生きることとの間には、しばしば埋めがたい懸隔が横たわっており、この懸隔こそが倫理的思索の出発点をなす。」筆者が倫理的思索の出発点とするのは？",o:["規範を語ることと従うことの乖離","規範が存在しないという事実","規範に従えば懸隔は消えること","懸隔は思索と無関係であること"],a:0},
+    {t:"「客観性とは主観の完全な排除によって得られるものではなく、複数の主観的視点を突き合わせ、相互に検証しうる手続きを通じて漸近的に近似されるものにすぎない。」筆者の客観性理解は？",o:["客観性は主観間の検証を通じて近似的に得られる","客観性は主観を完全に排すれば得られる","客観性という概念自体が無意味である","客観性は単一の主観から直接得られる"],a:0}
+  ]
+};
+
+const LEVEL_LABEL={beginner:"🌱 初級",intermediate:"🌿 中級",advanced:"🌳 上級",extreme:"🔥 超難問"};
+const COURSE_LABEL={kanji:"🈶 漢字コース",reading:"📖 文章題コース",general:"🌟 日本語力コース"};
+
+let pool=[],idx=0,scoreNow=0,total=20,curCourse="kanji",curLevel="beginner",answered=false;
+let memStats={answered:0,correct:0};
+const $=id=>document.getElementById(id);
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* 語彙データから「読み」「意味」の2択問題セットを自動生成 */
+function buildWordQuestions(levelKey){
+  const words=WORDS[levelKey];
+  const qs=[];
+  words.forEach(entry=>{
+    const others=words.filter(w=>w!==entry);
+    const wrongR=shuffle([...others]).slice(0,3).map(w=>w.r);
+    qs.push({t:`「${entry.w}」の読み方は？`,o:[entry.r,...wrongR],a:0,k:"🈶 漢字・読み"});
+    const wrongM=shuffle([...others]).slice(0,3).map(w=>w.m);
+    qs.push({t:`「${entry.w}」の意味として最も適切なものは？`,o:[entry.m,...wrongM],a:0,k:"📝 語句・意味"});
+  });
+  return qs;
+}
+function buildPassageQuestions(levelKey){
+  return PASSAGES[levelKey].map(p=>({t:p.t,o:[...p.o],a:p.a,k:"📖 読解"}));
+}
+function buildPool(course,level){
+  if(course==="kanji") return buildWordQuestions(level);
+  if(course==="reading") return buildPassageQuestions(level);
+  return [...buildWordQuestions(level),...buildPassageQuestions(level)];
+}
+
+function chooseCourse(course){
+  curCourse=course;
+  $("home").classList.add("hidden");
+  $("levels").classList.remove("hidden");
+  $("levelTitle").textContent="📶 "+COURSE_LABEL[course]+" のレベルを選ぼう";
+}
+function start(level){
+  curLevel=level;
+  let src=buildPool(curCourse,curLevel);
+  total=Math.min(20,src.length);
+  pool=shuffle(src.map(q=>({...q,o:[...q.o]}))).slice(0,total);
+  idx=0;scoreNow=0;
+  $("home").classList.add("hidden");$("levels").classList.add("hidden");
+  $("stats").classList.add("hidden");$("result").classList.add("hidden");
+  $("quiz").classList.remove("hidden");$("score").textContent="0問正解";
+  $("levelBadge").textContent=LEVEL_LABEL[curLevel];
+  showQuestion();
+}
+function showQuestion(){
+  answered=false;$("feedback").className="feedback hidden";$("next").classList.add("hidden");
+  let q=pool[idx],opts=q.o.map((text,i)=>({text,originalIndex:i}));shuffle(opts);
+  $("type").textContent=q.k;$("count").textContent=(idx+1)+" / "+total;
+  $("bar").style.width=(idx/total*100)+"%";$("question").textContent=q.t;$("answers").innerHTML="";
+  opts.forEach((o,i)=>{let b=document.createElement("button");b.className="choice";b.textContent=String.fromCharCode(65+i)+". "+o.text;b.onclick=()=>answer(b,o.originalIndex===q.a,opts);$("answers").appendChild(b)});
+}
+function answer(btn,ok,opts){
+  if(answered)return;answered=true;
+  document.querySelectorAll(".choice").forEach(b=>b.disabled=true);
+  if(ok){btn.classList.add("correct");scoreNow++;$("feedback").className="feedback ok";$("feedback").textContent="⭕ 正解！ええ感じじゃ！"}
+  else{btn.classList.add("wrong");let p=opts.findIndex(o=>o.originalIndex===pool[idx].a);document.querySelectorAll(".choice")[p].classList.add("correct");$("feedback").className="feedback ng";$("feedback").textContent="❌ 惜しい！緑色が正解じゃ。"}
+  $("feedback").classList.remove("hidden");$("score").textContent=scoreNow+"問正解";$("next").classList.remove("hidden");
+}
+function nextQuestion(){if(idx>=total-1)finish();else{idx++;showQuestion()}}
+function finish(){
+  $("quiz").classList.add("hidden");$("result").classList.remove("hidden");
+  let pct=Math.round(scoreNow/total*100);
+  $("finalScore").textContent=scoreNow;$("finalTotal").textContent=total;$("percent").textContent=pct+"%";
+  $("comment").textContent=pct>=90?"🔥 かなり強い！この調子じゃ！":pct>=70?"👍 ええ感じ！間違えたところを復習したらさらに伸びるで！":"💪 ここからじゃ！知らん言葉を一個ずつ覚えていこう！";
+  memStats.answered+=total;memStats.correct+=scoreNow;
+}
+function restart(){start(curLevel)}
+function backHome(){$("quiz").classList.add("hidden");$("result").classList.add("hidden");$("stats").classList.add("hidden");$("levels").classList.add("hidden");$("home").classList.remove("hidden")}
+function showStats(){$("home").classList.add("hidden");$("stats").classList.remove("hidden");let a=memStats.answered,s=memStats.correct;$("allAnswered").textContent=a;$("allCorrect").textContent=s;$("allPercent").textContent=a?Math.round(s/a*100)+"%":"0%"}
+function resetStats(){memStats={answered:0,correct:0};showStats()}
+</script></body></html>
